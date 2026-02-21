@@ -125,6 +125,8 @@ window.addEventListener('popstate', (e) => {
 
 let currentView = "novels";
 let currentData = novels;
+let isReadingMode = false; // Track if we're in reading mode (chapter reader)
+let isNovelDetailMode = false; // Track if we're in novel detail mode (chapter list)
 function sortData(data, criterion) {
   data.sort((a, b) => {
     if (criterion === "name") {
@@ -602,13 +604,22 @@ const chapterContent = document.getElementById("chapterContent");
 const novelTitle = document.getElementById("novelTitle");
 const readerBackBtn = document.getElementById("readerBackBtn");
 
+// Update back button visibility and text based on current state
 function updateBackButtons() {
-  const viewName =
-    currentView === "novella"
-      ? "Novella"
-      : currentView.charAt(0).toUpperCase() + currentView.slice(1);
-  backBtn.textContent = `← Back to ${viewName}`;
-  readerBackBtn.textContent = `← Back to ${viewName}`;
+  // Only show back button when we're in a novel (chapter list or reading mode)
+  const inNovelMode = currentNovel !== null;
+  
+  if (inNovelMode) {
+    // Show back button and set text to go back to novels list
+    backBtn.style.display = "block";
+    readerBackBtn.style.display = "block";
+    backBtn.textContent = "← Back to Novels";
+    readerBackBtn.textContent = "← Back to Novels";
+  } else {
+    // Hide back button on main pages
+    backBtn.style.display = "none";
+    readerBackBtn.style.display = "none";
+  }
 }
 
 // Hide sidebar when clicking outside
@@ -799,6 +810,12 @@ function renderGallery() {
       }
 
       card.onclick = () => openNovel(item);
+      
+      // Highlight the currently selected novel
+      if (currentNovel && item.id === currentNovel.id) {
+        card.classList.add("selected-novel");
+      }
+      
       novelGallery.appendChild(card);
 
       // Add slide down animation with stagger
