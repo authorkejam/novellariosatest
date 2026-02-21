@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Novell Ariosa</title>
+    <link rel="icon" type="image/png" href="weblogo.png" />
+    <meta property="og:image" content="weblogo.png" />
+    <meta property="og:title" content="Novellariosa" />
+    <meta
+      property="og:description"
+      content="Baca novel online, gratis selamanya"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Oswald:wght@400;700&family=Raleway:wght@400;700&family=Poppins:wght@400;700&family=Playfair+Display:wght@400;700&family=Merriweather:wght@400;700&family=Inter:wght@400;700&family=Quicksand:wght@400;700&family=Karla:wght@400;700&family=Mulish:wght@400;700&family=Manrope:wght@400;700&family=Outfit:wght@400;700&family=Readex+Pro:wght@400;700&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Fira+Code:wght@400;700&family=Roboto+Mono:wght@400;700&family=Ubuntu+Mono:wght@400;700&family=Space+Mono:wght@400;700&family=Noto+Sans:wght@400;700&family=Lora:wght@400;700&family=Crimson+Text:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Vollkorn:wght@400;700&family=EB+Garamond:wght@400;700&family=Old+Standard+TT:wght@400;700&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Satisfy&family=Allura&family=Kalam:wght@400;700&family=Shadows+Into+Light&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.13/lottie.min.js"></script>
+    <meta property="og:title" content="Author Novel" />
+    <meta
+      property="og:description"
+      content="Baca novel online, gratis selamanya. Author mati, license berakhir."
+    />
+    <meta
+      property="og:image"
+      content="https://authorkejam.github.io/authornovel/weblogo.png"
+    />
+    <meta
+      property="og:url"
+      content="https://authorkejam.github.io/authornovel/"
+    />
+    <meta property="og:type" content="website" />
+  </head>
+  <main>
+    <img>
+      <!-- Header untuk animasi pintu -->
+      <header class="intro-header">
+        <div class="custom-header">
+          <span class="letter circle-a">N</span>
+          <span class="letter">O</span>
+          <span class="letter">V</span>
+          <span class="letter">E</span>
+          <span class="letter">L</span>
+          <span class="letter">A</span>
+          <span class="letter space">&nbsp;</span>
+          <span class="letter">R</span>
+          <span class="letter">I</span>
+          <span class="letter">0</span>
+          <span class="letter">S</span>
+          <span class="letter">A</span>
+          <!--<span class="letter circle-or">O</span>-->
+        </div>
+      </header>
+
+      <!-- Header normal -->
+      <header class="normal-header">
+        <img
+          src="logo/web-cover.png"
+          alt="Author Novel"
+          class="custom-header"
+        />
+        <button id="darkModeToggle">🌙</button>
+      </header>
+      <button class="menu-btn" id="menuBtn">☰</button>
+      <div class="sidebar" id="sidebar">
+        <button class="back-btn" id="backBtn">← Back to Novels</button>
+        <h2 id="novelTitle">Chapters</h2>
+        <div class="chapter-list" id="chapterList"></div>
+      </div>
+
+      <div class="main-container">
+        <div class="NFT-sett">
+          <button id="sortBtn">📔 Terbaru</button>
+          <button id="fontBtn">🔤 Arial</button>
+          <button id="themeBtn">🎨 Default</button>
+        </div>
+
+        <div class="view-controls">
+          <button id="blogsBtn">Blogs</button>
+          <button id="novelsBtn">Novels</button>
+          <button id="novellaBtn">Novella</button>
+          <button id="aboutBtn">About</button>
+        </div>
+        <div class="gallery" id="novelGallery"></div>
+        <div class="reader" id="reader">
+          <div class="content">
+            <button class="reader-back-btn" id="readerBackBtn">
+              ← Back to Novels
+            </button>
+            <h2 id="readerNovelTitle"></h2>
+            <h3 id="readerChapterTitle" class="content-chapter-title"></h3>
+            <div class="chapter-nav">
+              <button id="prevChapterBtn" class="nav-btn">← previous</button>
+              <button id="nextChapterBtn" class="nav-btn">next →</button>
+            </div>
+            <div class="font-controls">
+              <button id="decreaseFont" class="font-btn">A-</button>
+              <button id="increaseFont" class="font-btn">A+</button>
+              <button id="alignLeft" class="font-btn">Left</button>
+              <button id="alignCenter" class="font-btn">Center</button>
+              <button id="alignJustify" class="font-btn">Justify</button>
+            </div>
+            <div class="chapter-content" id="chapterContent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data files -->
+      <script src="data/novel.js"></script>
+      <script src="data/short.js"></script>
+      <script src="data/blog.js"></script>
+      <script src="data/about.js"></script>
+      <script src="data/function.js"></script>
+      
+      <!-- URL Routing Initialization -->
+      <script>
+        // Initialize routing after all scripts are loaded
+        document.addEventListener('DOMContentLoaded', function() {
+          // Wait a bit for function.js to initialize
+          setTimeout(function() {
+            if (typeof parseRoute === 'function' && typeof navigateTo === 'function' && typeof renderView === 'function') {
+              const route = parseRoute();
+              console.log('Initial route:', route);
+              
+              // Only navigate if we're not on the home page
+              if (route.view !== 'novels' || route.novelId !== null) {
+                renderView(route.view, route.novelId, route.chapterIndex);
+              } else {
+                // Set initial URL for home page without triggering render again
+                if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+                  history.replaceState({ view: 'novels', novelId: null, chapterIndex: null }, '', '/novels');
+                }
+              }
+            }
+          }, 100);
+        });
+      </script>
+      
+    </body>
+  </main>
+
+  <!-- Footer untuk animasi pintu -->
+  <footer class="intro-footer"></footer>
+
+  <!-- Footer normal -->
+  <footer class="normal-footer">
+    <div class="footer-content">
+      <img src="logo/footer-logo.png" alt="Footer Logo" class="footer-logo" />
+      <div class="social-logos">
+        <a
+          href="https://www.instagram.com/authornovel527?igsh=MTU5ZTFsaG44cmluMQ=="
+          target="_blank"
+          ><img src="logo/instagram.svg" alt="Instagram" class="social-logo"
+        /></a>
+        <a
+          href="https://x.com/AuthorNove83836?t=0HDjZ9quciyGXtkqf4w4EQ&s=09"
+          target="_blank"
+          ><img src="logo/twitter.svg" alt="Twitter" class="social-logo"
+        /></a>
+      </div>
+      <p>&copy;2025 Author Novel Blog. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(registration) {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+  </script>
+</html>
