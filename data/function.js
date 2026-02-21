@@ -1,229 +1,127 @@
-// ==========================================
-// URL ROUTING SYSTEM
-// ==========================================
+// ============================================
+// History API Navigation System
+// ============================================
 
-// Parse URL and extract route information
-function parseRoute() {
+// Parse URL on page load and restore state
+function parseUrlAndRestoreState() {
   const path = window.location.pathname;
   const hash = window.location.hash;
   
+  // Handle hash-based URLs for GitHub Pages compatibility
+  if (hash && hash.length > 1) {
+    const hashPath = hash.substring(1); // Remove #
+    return parsePathAndRestoreState(hashPath);
+  }
+  
+  return parsePathAndRestoreState(path);
+}
+
+// Parse path and restore the correct view/state
+function parsePathAndRestoreState(path) {
   // Remove trailing slash if present
-  const cleanPath = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
+  path = path.replace(/\/$/, '');
   
-  // Split path into segments
-  const segments = cleanPath.split('/').filter(s => s);
-  
-  // Route patterns:
-  // / or /index.html -> home (novels)
-  // /novels -> novels list
-  // /novels/:id -> novel detail (chapters)
-  // /novels/:id/chapter/:chapterIndex -> chapter reader
-  // /blogs -> blogs list
-  // /novella -> novella list
-  // /about -> about page
-  
-  if (segments.length === 0 || segments[0] === 'index.html') {
-    return { view: 'novels', novelId: null, chapterIndex: null };
+  // Default to home page
+  if (!path || path === '' || path === '/index.html') {
+    currentView = "novels";
+    currentData = novels;
+    currentNovel = null;
+    renderGallery();
+    return;
   }
   
-  
-  if (segments[0] === 'blogs') {
-    return { view: 'blogs', novelId: null, chapterIndex: null };
-  }
-  
-  if (segments[0] === 'novella') {
-    return { view: 'novella', novelId: null, chapterIndex: null };
-  }
-  
-  if (segments[0] === 'about') {
-    return { view: 'about', novelId: null, chapterIndex: null };
-  }
-  
-  // Default to novels
-  return { view: 'novels', novelId: null, chapterIndex: null };
-}
-
-// Navigate to a specific route
-function navigateTo(view, novelId = null, chapterIndex = null, pushState = true) {
-  let newPath = '/';
-  
-  if (view === 'novels') {
-    newPath = '/novels';
-  } else if (view === 'novel' && novelId !== null) {
-    if (chapterIndex !== null) {
-      newPath = `/novels/${novelId}/chapter/${chapterIndex}`;
-    } else {
-      newPath = `/novels/${novelId}`;
-    }
-  } else if (view === 'blogs') {
-    newPath = '/blogs';
-  } else if (view === 'novella') {
-    newPath = '/novella';
-  } else if (view === 'about') {
-    newPath = '/about';
-  }
-  
-  if (pushState) {
-    history.pushState({ view, novelId, chapterIndex }, '', newPath);
-  }
-  
-  // Render the appropriate view
-  renderView(view, novelId, chapterIndex);
-}
-
-// Render view based on route
-function renderView(view, novelId, chapterIndex) {
-  // First, set the view and data
-  if (view === 'novels') {
-    currentView = 'novels';
+  // Parse different URL patterns
+  // /novels, /blogs, /novella, /about
+  if (path === '/novels') {
+    currentView = "novels";
     currentData = novels;
     currentNovel = null;
     sortData(currentData, sortOptions[currentSortIndex].value);
     updateBackButtons();
     renderGallery();
-  } else if (view === 'blogs') {
-    currentView = 'blogs';
+    return;
+  }
+  
+  if (path === '/blogs') {
+    currentView = "blogs";
     currentData = blogs;
     currentNovel = null;
     sortData(currentData, sortOptions[currentSortIndex].value);
     updateBackButtons();
     renderGallery();
-  } else if (view === 'novella') {
-    currentView = 'novella';
+    return;
+  }
+  
+  if (path === '/novella') {
+    currentView = "novella";
     currentData = novella;
     currentNovel = null;
     sortData(currentData, sortOptions[currentSortIndex].value);
     updateBackButtons();
     renderGallery();
-  } else if (view === 'about') {
-    currentView = 'about';
+    return;
+  }
+  
+  if (path === '/about') {
+    currentView = "about";
     currentData = about;
     currentNovel = null;
     sortData(currentData, sortOptions[currentSortIndex].value);
     updateBackButtons();
     renderGallery();
-  } else if (view === 'novel' && novelId !== null) {
-    // Find the novel by ID
-    const novel = novels.find(n => n.id === novelId);
+    return;
+  }
+  
+  // Parse novel URL: /novel/1 (where 1 is the novel ID)
+  const novelMatch = path.match(/^\/novel\/(\d+)$/);
+  if (novelMatch) {
+    const novelId = parseInt(novelMatch[1]);
+    const novel = currentData.find(n => n.id === novelId) || novels.find(n => n.id === novelId);
     if (novel) {
-      currentNovel = novel;
-      currentView = 'novels';
-      openNovel(novel, chapterIndex);
-    } else {
-      // Novel not found, go back to novels
-      navigateTo('novels', null, null, true);
+      currentView = "novels";
+      currentData = novels;
+      openNovel(novel, false); // false = don't push state (already handled)
+      return;
     }
   }
+  
+  // Parse chapter URL: /novel/1/chapter/3 (novel ID and chapter index)
+  const chapterMatch = path.match(/^\/novel\/(\d+)\/chapter\/(\d+)$/);
+  if (chapterMatch) {
+    const novelId = parseInt(chapterMatch[1]);
+    const chapterIndex = parseInt(chapterMatch[2]);
+    const novel = novels.find(n => n.id === novelId);
+    if (novel) {
+      currentView = "novels";
+      currentData = novels;
+      openNovel(novel, false, chapterIndex);
+      return;
+    }
+  }
+  
+  // Default fallback
+  currentView = "novels";
+  currentData = novels;
+  currentNovel = null;
+  renderGallery();
+}
+
+// Push state to history
+function pushState(url, title) {
+  // Use hash-based navigation for better GitHub Pages compatibility
+  window.location.hash = url;
+  document.title = title || 'Novell Ariosa';
 }
 
 // Handle browser back/forward buttons
-window.addEventListener('popstate', (event) => {
-  if (event.state) {
-    const { view, novelId, chapterIndex } = event.state;
-    renderView(view, novelId, chapterIndex);
-  } else {
-    // No state, parse current URL
-    const route = parseRoute();
-    renderView(route.view, route.novelId, route.chapterIndex);
-  }
+window.addEventListener('popstate', (e) => {
+  // Prevent default navigation and parse the new URL
+  parseUrlAndRestoreState();
 });
 
-// Modify openNovel to update URL
-const originalOpenNovel = openNovel;
-openNovel = function(novel, startChapterIndex = 0) {
-  originalOpenNovel(novel, startChapterIndex);
-  // Update URL
-  navigateTo('novel', novel.id, startChapterIndex, true);
-};
-
-// Modify openChapter to update URL
-const originalOpenChapter = openChapter;
-openChapter = function(index) {
-  originalOpenChapter(index);
-  if (currentNovel) {
-    navigateTo('novel', currentNovel.id, index, true);
-  }
-};
-
-// Modify back button handlers
-const originalBackBtnOnClick = backBtn.onclick;
-backBtn.onclick = function() {
-  currentNovel = null;
-  navigateTo(currentView === 'novella' ? 'novella' : currentView, null, null, true);
-  renderGallery();
-  sidebarShownByHover = false;
-  sidebarShownBySwipe = false;
-};
-
-const originalReaderBackBtnOnClick = readerBackBtn.onclick;
-readerBackBtn.onclick = function() {
-  currentNovel = null;
-  navigateTo(currentView === 'novella' ? 'novella' : currentView, null, null, true);
-  renderGallery();
-  sidebarShownByHover = false;
-  sidebarShownBySwipe = false;
-};
-
-// Modify view button handlers to update URL
-const originalNovelsBtnHandler = novelsBtn.onclick;
-novelsBtn.onclick = function() {
-  currentView = 'novels';
-  currentData = novels;
-  currentNovel = null;
-  sortData(currentData, sortOptions[currentSortIndex].value);
-  updateBackButtons();
-  sidebar.classList.remove('active');
-  menuBtn.style.display = 'none';
-  sidebarShownByHover = false;
-  sidebarShownBySwipe = false;
-  navigateTo('novels', null, null, true);
-};
-
-const originalBlogsBtnHandler = blogsBtn.onclick;
-blogsBtn.onclick = function() {
-  currentView = 'blogs';
-  currentData = blogs;
-  currentNovel = null;
-  sortData(currentData, sortOptions[currentSortIndex].value);
-  updateBackButtons();
-  sidebar.classList.remove('active');
-  menuBtn.style.display = 'none';
-  sidebarShownByHover = false;
-  sidebarShownBySwipe = false;
-  navigateTo('blogs', null, null, true);
-};
-
-const originalNovellaBtnHandler = novellaBtn.onclick;
-novellaBtn.onclick = function() {
-  currentView = 'novella';
-  currentData = novella;
-  currentNovel = null;
-  sortData(currentData, sortOptions[currentSortIndex].value);
-  updateBackButtons();
-  sidebar.classList.remove('active');
-  menuBtn.style.display = 'none';
-  sidebarShownByHover = false;
-  sidebarShownBySwipe = false;
-  navigateTo('novella', null, null, true);
-};
-
-const originalAboutBtnHandler = aboutBtn.onclick;
-aboutBtn.onclick = function() {
-  currentView = 'about';
-  currentData = about;
-  currentNovel = null;
-  sortData(currentData, sortOptions[currentSortIndex].value);
-  updateBackButtons();
-  sidebar.classList.remove('active');
-  menuBtn.style.display = 'none';
-  sidebarShownByHover = false;
-  sidebarShownBySwipe = false;
-  navigateTo('about', null, null, true);
-};
-
-// ==========================================
-// EXISTING CODE CONTINUES
-// ==========================================
+// ============================================
+// Original Code - With History API Integration
+// ============================================
 
 let currentView = "novels";
 let currentData = novels;
@@ -919,14 +817,15 @@ function renderGallery() {
 }
 
 // Open novel and show chapters in sidebar
-function openNovel(novel) {
+// Modified to support pushState parameter for History API
+function openNovel(novel, shouldPushState = true, startChapterIndex = null) {
   currentNovel = novel;
   novelTitle.textContent = novel.title;
   chapterList.innerHTML = "";
   novel.chapters.forEach((chapter, index) => {
     const button = document.createElement("button");
     button.textContent = chapter.title;
-    button.onclick = () => openChapter(index);
+    button.onclick = () => openChapter(index, true);
     chapterList.appendChild(button);
   });
   sidebar.classList.add("active");
@@ -934,12 +833,17 @@ function openNovel(novel) {
   novelGallery.style.display = "none";
   reader.classList.add("active");
   readerBackBtn.style.display = "block";
-  // Load last read chapter or first chapter
+  // Load last read chapter or first chapter or specified chapter
   const savedChapter = localStorage.getItem(`novel-${novel.id}-chapter`);
-  const startIndex = savedChapter !== null ? parseInt(savedChapter) : 0;
-  openChapter(startIndex);
+  const startIndex = startChapterIndex !== null ? startChapterIndex : (savedChapter !== null ? parseInt(savedChapter) : 0);
+  openChapter(startIndex, shouldPushState);
   sidebarShownByHover = false;
   sidebarShownBySwipe = false;
+  
+  // Update URL for History API
+  if (shouldPushState) {
+    pushState(`/novel/${novel.id}`, `${novel.title} - Novell Ariosa`);
+  }
 }
 
 // Cache for fetched content (in-memory)
@@ -992,7 +896,8 @@ async function cachedFetch(url) {
 }
 
 // Open chapter and render content
-function openChapter(index) {
+// Modified to support pushState parameter for History API
+function openChapter(index, shouldPushState = true) {
   if (!currentNovel) return;
   if (index < 0 || index >= currentNovel.chapters.length) return;
   const chapter = currentNovel.chapters[index];
@@ -1024,6 +929,11 @@ function openChapter(index) {
   menuBtn.style.display = "block";
   sidebarShownByHover = false;
   sidebarShownBySwipe = false;
+  
+  // Update URL for History API
+  if (shouldPushState && currentNovel) {
+    pushState(`/novel/${currentNovel.id}/chapter/${index}`, `${chapter.title} - ${currentNovel.title} - Novell Ariosa`);
+  }
 }
 
 // Back to novel gallery
@@ -1034,6 +944,16 @@ backBtn.onclick = () => {
   readerBackBtn.style.display = "none";
   sidebarShownByHover = false;
   sidebarShownBySwipe = false;
+  // Update URL for History API
+  if (currentView === 'novels') {
+    pushState('/novels', 'Novels - Novell Ariosa');
+  } else if (currentView === 'blogs') {
+    pushState('/blogs', 'Blogs - Novell Ariosa');
+  } else if (currentView === 'novella') {
+    pushState('/novella', 'Novella - Novell Ariosa');
+  } else if (currentView === 'about') {
+    pushState('/about', 'About - Novell Ariosa');
+  }
 };
 
 // Reader back button
@@ -1042,6 +962,16 @@ readerBackBtn.onclick = () => {
   renderGallery();
   sidebarShownByHover = false;
   sidebarShownBySwipe = false;
+  // Update URL for History API
+  if (currentView === 'novels') {
+    pushState('/novels', 'Novels - Novell Ariosa');
+  } else if (currentView === 'blogs') {
+    pushState('/blogs', 'Blogs - Novell Ariosa');
+  } else if (currentView === 'novella') {
+    pushState('/novella', 'Novella - Novell Ariosa');
+  } else if (currentView === 'about') {
+    pushState('/about', 'About - Novell Ariosa');
+  }
 };
 
 // Add event listeners for view buttons
@@ -1060,6 +990,7 @@ novelsBtn.addEventListener("click", () => {
   sidebarShownByHover = false;
   sidebarShownBySwipe = false;
   renderGallery();
+  pushState('/novels', 'Novels - Novell Ariosa');
 });
 
 blogsBtn.addEventListener("click", () => {
@@ -1073,6 +1004,7 @@ blogsBtn.addEventListener("click", () => {
   sidebarShownByHover = false;
   sidebarShownBySwipe = false;
   renderGallery();
+  pushState('/blogs', 'Blogs - Novell Ariosa');
 });
 
 novellaBtn.addEventListener("click", () => {
@@ -1086,6 +1018,7 @@ novellaBtn.addEventListener("click", () => {
   sidebarShownByHover = false;
   sidebarShownBySwipe = false;
   renderGallery();
+  pushState('/novella', 'Novella - Novell Ariosa');
 });
 
 const aboutBtn = document.getElementById("aboutBtn");
@@ -1100,6 +1033,7 @@ aboutBtn.addEventListener("click", () => {
   sidebarShownByHover = false;
   sidebarShownBySwipe = false;
   renderGallery();
+  pushState('/about', 'About - Novell Ariosa');
 });
 
 // Track current chapter index for navigation
@@ -1137,6 +1071,11 @@ menuBtn.onclick = () => {
 
 // Initial render
 renderGallery();
+
+// Parse URL on page load to restore state (for browser back/forward support)
+if (window.location.hash) {
+  parseUrlAndRestoreState();
+}
 
 // Font selection logic
 const fontBtn = document.getElementById("fontBtn");
@@ -1226,7 +1165,17 @@ increaseFontBtn.addEventListener("click", () => {
 // Track current text alignment, default to 'left'
 let currentTextAlign = "left";
 
-// Update font size after loading chapter content - Already handled in routing section above
+// Update font size after loading chapter content
+const originalOpenChapter = openChapter;
+openChapter = function (index) {
+  originalOpenChapter(index);
+  // Delay update to ensure content is loaded
+  setTimeout(() => {
+    updateFontSize();
+    updateFontFamily();
+    chapterContent.style.textAlign = currentTextAlign; // apply last selected alignment/ingat pilihan align terakhir
+  }, 100);
+};
 
 // Text alignment control logic
 const alignLeftBtn = document.getElementById("alignLeft");
@@ -1360,16 +1309,5 @@ document.addEventListener("DOMContentLoaded", function () {
     darkModeToggle.style.opacity = "1";
     normalHeader.style.display = "block";
     normalFooter.style.display = "block";
-    
-    // Initialize URL routing after intro animation
-    setTimeout(() => {
-      const route = parseRoute();
-      if (route.view !== 'novels' || route.novelId !== null) {
-        renderView(route.view, route.novelId, route.chapterIndex);
-      } else {
-        // Set initial URL for home page
-        navigateTo('novels', null, null, true);
-      }
-    }, 100);
   }, 2200);
 });
