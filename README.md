@@ -4,6 +4,10 @@
 
 Baca novel online, gratis selamanya. Platform untuk membaca novel, cerita pendek, dan blog secara daring tanpa biaya.
 
+## Support
+
+Kalian bisa support Author dengan membeli Novel dalam bentuk ebook di [trakteer](https://trakteer.id/rammm4)
+
 ## Deskripsi
 
 Author Novel adalah situs web statis yang memungkinkan pengguna untuk membaca berbagai novel, cerita pendek, dan artikel blog secara gratis. Situs ini dirancang dengan antarmuka yang ramah pengguna, fitur kustomisasi font, mode gelap, dan navigasi bab yang mudah.
@@ -30,7 +34,7 @@ Author Novel adalah situs web statis yang memungkinkan pengguna untuk membaca be
 
 ## Penggunaan
 
-Kunjungi situs web di [https://authorkejam.github.io/authornovel/](https://authorkejam.github.io/authornovel/) untuk mulai membaca.
+Kunjungi situs web di [authorkejam.com](https://authorkejam.github.io/authornovel/) untuk mulai membaca.
 
 ## Struktur Proyek
 
